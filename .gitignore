@@ -42,7 +42,7 @@ web-build/
 frontend/android/.gradle/
 frontend/android/app/build/
 frontend/android/local.properties
-frontend/android/*.keystore
+**/*.keystore
 frontend/android/key.properties
 
 # iOS
