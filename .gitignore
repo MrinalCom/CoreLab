@@ -1,0 +1,66 @@
+# Environment & secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+
+# Node / React Native
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React Native / Expo
+.expo/
+.expo-shared/
+*.orig.*
+web-build/
+
+# Android
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/local.properties
+frontend/android/*.keystore
+frontend/android/key.properties
+
+# iOS
+frontend/ios/Pods/
+frontend/ios/build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Claude Code
+.claude/
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**, /api/users/**
+          filters:
+            - StripPrefix=0
+
+        - id: workout-service
+          uri: lb://workout-service
+          predicates:
+            - Path=/api/workouts/**
+          filters:
+            - StripPrefix=0
+            - name: JwtAuthFilter
+
+        - id: tracking-service
+          uri: lb://tracking-service
+          predicates:
+            - Path=/api/tracking/**
+          filters:
+            - StripPrefix=0
+            - name: JwtAuthFilter
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=0
+            - name: JwtAuthFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKey12345678901234567890}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

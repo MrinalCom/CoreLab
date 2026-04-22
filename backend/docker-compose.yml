@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on: [zookeeper]
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  db-user:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gymapp_users
+      POSTGRES_USER: gymapp
+      POSTGRES_PASSWORD: gymapp123
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_data:/var/lib/postgresql/data
+
+  db-workout:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gymapp_workouts
+      POSTGRES_USER: gymapp
+      POSTGRES_PASSWORD: gymapp123
+    ports:
+      - "5433:5432"
+    volumes:
+      - workout_data:/var/lib/postgresql/data
+
+  db-tracking:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gymapp_tracking
+      POSTGRES_USER: gymapp
+      POSTGRES_PASSWORD: gymapp123
+    ports:
+      - "5434:5432"
+    volumes:
+      - tracking_data:/var/lib/postgresql/data
+
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on: [eureka-server]
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "8081:8081"
+    depends_on: [db-user, eureka-server, kafka]
+    environment:
+      DB_HOST: db-user
+      DB_PORT: 5432
+      DB_NAME: gymapp_users
+      DB_USER: gymapp
+      DB_PASSWORD: gymapp123
+      EUREKA_URI: http://eureka-server:8761/eureka
+      KAFKA_BOOTSTRAP: kafka:29092
+      JWT_SECRET: ${JWT_SECRET:-mySecretKey12345678901234567890}
+
+  workout-service:
+    build: ./workout-service
+    ports:
+      - "8082:8082"
+    depends_on: [db-workout, eureka-server, kafka]
+    environment:
+      DB_HOST: db-workout
+      DB_PORT: 5432
+      DB_NAME: gymapp_workouts
+      DB_USER: gymapp
+      DB_PASSWORD: gymapp123
+      EUREKA_URI: http://eureka-server:8761/eureka
+      KAFKA_BOOTSTRAP: kafka:29092
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+
+  tracking-service:
+    build: ./tracking-service
+    ports:
+      - "8083:8083"
+    depends_on: [db-tracking, eureka-server, kafka]
+    environment:
+      DB_HOST: db-tracking
+      DB_PORT: 5432
+      DB_NAME: gymapp_tracking
+      DB_USER: gymapp
+      DB_PASSWORD: gymapp123
+      EUREKA_URI: http://eureka-server:8761/eureka
+      KAFKA_BOOTSTRAP: kafka:29092
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "8084:8084"
+    depends_on: [eureka-server, kafka]
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka
+      KAFKA_BOOTSTRAP: kafka:29092
+
+volumes:
+  user_data:
+  workout_data:
+  tracking_data:
